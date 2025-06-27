@@ -1,0 +1,132 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+
+const productsData = [
+  {
+    id: 1,
+    name: "T-Shirt",
+    price: 499,
+    category: "Clothing",
+    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: 2,
+    name: "Sneakers",
+    price: 1299,
+    category: "Shoes",
+    image: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: 3,
+    name: "Jeans",
+    price: 999,
+    category: "Clothing",
+    image: "https://images.unsplash.com/photo-1593032457865-4b4fbd8f8d33?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    id: 4,
+    name: "Smart Watch",
+    price: 1999,
+    category: "Electronics",
+    image: "https://images.unsplash.com/photo-1526378728895-9d8a5a7f5a6f?auto=format&fit=crop&w=400&q=80"
+  }
+];
+
+export default function EcommerceApp() {
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  const [darkMode, setDarkMode] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const addToCart = (product) => {
+    setCart([...cart, product]);
+    alert(`${product.name} added to cart ✅`);
+  };
+
+  const removeFromCart = (index) => {
+    setCart(cart.filter((_, i) => i !== index));
+  };
+
+  const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+  const filteredProducts = productsData.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <div className={`p-6 max-w-5xl mx-auto ${darkMode ? "bg-gray-900 text-white" : "bg-white text-black"}`}>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">🛒 Simple E-Commerce Store</h1>
+        <div className="flex items-center gap-2">
+          <span>Dark Mode</span>
+          <Switch checked={darkMode} onCheckedChange={() => setDarkMode(!darkMode)} />
+        </div>
+      </div>
+
+      <div className="flex gap-4 mb-4">
+        <Input
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select
+          className="p-2 border rounded"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="All">All</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Shoes">Shoes</option>
+          <option value="Electronics">Electronics</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {filteredProducts.map((product) => (
+          <Card key={product.id} className="p-4 flex flex-col items-center">
+            <img src={product.image} alt={product.name} className="w-32 h-32 object-cover mb-2 rounded" />
+            <CardContent>
+              <h2 className="text-xl font-semibold text-center">{product.name}</h2>
+              <p className="text-gray-500 text-center">₹{product.price}</p>
+              <p className="text-sm text-center text-gray-400">{product.category}</p>
+              <Button className="mt-2 w-full" onClick={() => addToCart(product)}>
+                Add to Cart
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-10">
+        <h2 className="text-2xl font-bold mb-4">🧾 Cart</h2>
+        {cart.length === 0 ? (
+          <p className="text-gray-500">Cart is empty</p>
+        ) : (
+          <ul className="space-y-2">
+            {cart.map((item, index) => (
+              <li key={index} className="flex justify-between items-center p-2 bg-gray-100 rounded-md">
+                <span>{item.name} - ₹{item.price}</span>
+                <Button variant="outline" size="sm" onClick={() => removeFromCart(index)}>
+                  Remove
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-4 text-lg font-semibold">Total: ₹{total}</div>
+      </div>
+    </div>
+  );
+}
